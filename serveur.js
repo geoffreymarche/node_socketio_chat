@@ -71,7 +71,7 @@ io.sockets.on('connection', function (socket, pseudo) {
           var insert = {
             message:[data],
           }
-          fs.writeFile("./"+socket.room+".json", JSON.stringify(insert, null, 4));
+          fs.writeFile("assets/log/"+socket.room+".json", JSON.stringify(insert, null, 4));
         }
         // envoi du message
         io.sockets.to(socket.room).emit('message', data);
