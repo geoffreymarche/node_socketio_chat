@@ -4,6 +4,7 @@ var app = require('express')(), // utilisation app express
     bodyParser = require('body-parser'), // parser les req http
     ent = require('ent'), // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
     fs = require('fs');
+    //fs = require("chai").assert;
 app.use( bodyParser.json() );       // encoder en json les body de req http
 app.use(bodyParser.urlencoded({     // encoder en json les param d'url de req http
   extended: true
@@ -30,7 +31,30 @@ io.sockets.on('connection', function (socket, pseudo) {
     // Dès qu'on reçoit un message, on récupère le pseudo de son auteur et on le transmet aux autres personnes
     socket.on('message', function (message) {
         message = ent.encode(message);
-        io.sockets.to(socket.room).emit('message', {pseudo: socket.pseudo, message: message});
+        var data = {pseudo: socket.pseudo, message: message};
+        // creation des logs
+        if (fs.existsSync("./"+socket.room+".json")) {
+          // si fichier log existe deja :
+          fs.readFile("./"+socket.room+".json", function (err, results) {
+              var json = JSON.parse(results);
+              json.message.push(data);
+              fs.writeFile("./"+socket.room+".json", JSON.stringify(json));
+          })
+        }else {
+          // action si non
+          var insert = {
+            message:[data],
+          }
+          fs.writeFile("./"+socket.room+".json", JSON.stringify(insert, null, 4), (err) => {
+              if (err) {
+                  console.error(err);
+                  return;
+              };
+              console.log("File has been created");
+          });
+        }
+        // envoi du message
+        io.sockets.to(socket.room).emit('message', data);
     });
 
 });
